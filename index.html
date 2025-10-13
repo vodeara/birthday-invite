@@ -114,20 +114,25 @@
             }
         });
 
-        // ПРОСТОЙ СЧЕТЧИК ОНЛАЙН (работает локально)
-        function updateOnlineCounter() {
-            // Генерируем случайное число от 1 до 10 для имитации онлайн
-            const onlineCount = Math.floor(Math.random() * 10) + 1;
-            document.getElementById('onlineNumber').textContent = onlineCount;
-            
-            // Меняем число каждые 5-15 секунд для реалистичности
-            const nextUpdate = Math.random() * 10000 + 5000; // 5-15 секунд
-            setTimeout(updateOnlineCounter, nextUpdate);
-        }
-
-        // Запускаем счетчик
-        updateOnlineCounter();
-    });
+       <!-- Счетчик просмотров -->
+  <div style="position: fixed; left: 20px; top: 20px; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
+      👀 Просмотров: <span id="viewCount">1</span>
+  </div>
+  
+  <script>
+  // Простой счетчик просмотров через LocalStorage
+  document.addEventListener('DOMContentLoaded', function() {
+      let views = localStorage.getItem('birthday_views');
+      if (!views) {
+          views = 1;
+      } else {
+          views = parseInt(views) + 1;
+      }
+      localStorage.setItem('birthday_views', views);
+      document.getElementById('viewCount').textContent = views;
+  });
+</script>
   </script>
 </body>
 </html>
+
