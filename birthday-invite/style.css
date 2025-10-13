@@ -1,0 +1,82 @@
+:root{
+  --bg1: #f59baf;
+  --bg2: #367d0d;
+  --accent: #d37c7c;
+  --card-bg: rgba(255, 255, 255, 0.95);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif}
+.scene{height:100%;width:100%;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center}
+
+/* два экрана — слои */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:transform 0.9s cubic-bezier(.2,.9,.2,1), opacity 0.6s}
+.screen-home{z-index:30}
+.screen-invite{z-index:10;transform:translateY(40px);opacity:0}
+
+/* при перелистывании — переворот и показ invite */
+.scene.flip .screen-home{transform:translateY(-20px) scale(0.98) rotateX(15deg);opacity:0;pointer-events:none}
+.scene.flip .screen-invite{transform:translateY(0) scale(1);opacity:1;z-index:40}
+
+/* карточка главного экрана */
+.card{background:var(--card-bg);padding:32px;border-radius:18px;box-shadow:0 12px 40px rgba(2,6,23,0.15);text-align:center;max-width:92%;width:420px}
+.card h1{margin:0 0 8px;font-size:26px;letter-spacing:0.5px}
+.card .sub{color:#444;margin-bottom:18px}
+
+/* кнопка открыть */
+.open-btn{background:linear-gradient(90deg,var(--accent),#ff9a76);border:0;color:white;padding:16px 28px;border-radius:12px;font-size:18px;cursor:pointer;box-shadow:0 8px 20px rgba(255,111,97,0.25);transition:transform .12s}
+.open-btn:active{transform:translateY(2px)}
+
+/* приглашение */
+.invite-card{background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));padding:20px;border-radius:18px;max-width:920px;width:94%;box-shadow:0 16px 40px rgba(2,6,23,0.12);position:relative}
+.invite-card h1{margin-top:0;font-size:26px}
+.invite-card .lead{color:#333}
+
+/* список подарков */
+.gifts{margin-top:12px}
+.gift-list{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* контролы снизу */
+.controls{display:flex;gap:12px;justify-content:center;margin-top:16px}
+.music-btn{padding:10px 14px;border-radius:10px;border:0;background:#fff;border:1px solid rgba(0,0,0,0.06);cursor:pointer}
+.share-link{display:inline-flex;align-items:center;padding:10px 12px;border-radius:10px;background:#fff;text-decoration:none;color:#333;border:1px solid rgba(0,0,0,0.06)}
+
+/* кнопка закрыть (в приглашении) */
+.close-btn{position:absolute;right:12px;top:12px;border-radius:10px;border:0;background:transparent;font-size:20px;cursor:pointer}
+
+/* canvas конфетти поверх всего */
+.confetti-canvas{position:fixed;left:0;top:0;pointer-events:none;width:100%;height:100%;z-index:1000;display:none}
+
+/* адаптив */
+@media (max-width:480px){
+  .card{padding:20px}
+  .gift-list{flex-direction:column;align-items:center}
+}
+body {
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
+}
+
+/* Стили для иконок подарков */
+.gift-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.gift {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: var(--card-bg);
+}
+
+.gift:hover {
+  border-color: #ff6b6b;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255, 111, 97, 0.2);
+}
