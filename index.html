@@ -14,6 +14,11 @@
 </head>
 <body class="scene" id="body">
 
+  <!-- 👥 Онлайн-счётчик СЛЕВА СВЕРХУ -->
+  <div id="onlineCounter" style="position: fixed; left: 20px; top: 20px; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
+    Сейчас на сайте: <span id="onlineNumber">1</span> 🎈
+  </div>
+
   <!-- Экран 1: главная -->
   <section class="screen screen-home" id="homeScreen">
     <div class="card">
@@ -108,13 +113,34 @@
                 closeInvitation();
             }
         });
+
+        // Реальный онлайн-счётчик через WebSocket
+        const userId = Math.random().toString(36).substr(2, 9);
+        const socket = new WebSocket('wss://realtimeapi.io/api/live');
+
+        socket.onopen = () => {
+          socket.send(JSON.stringify({ event: 'join', room: 'birthday_invite_room', user: userId }));
+        };
+
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.room === 'birthday_invite_room' && data.count !== undefined) {
+              document.getElementById('onlineNumber').textContent = data.count;
+            }
+          } catch (e) {
+            console.error('Ошибка WebSocket:', e);
+            // Fallback - простой счетчик
+            let current = parseInt(document.getElementById('onlineNumber').textContent) || 1;
+            document.getElementById('onlineNumber').textContent = current + 1;
+          }
+        };
+
+        window.addEventListener('beforeunload', () => {
+          socket.send(JSON.stringify({ event: 'leave', room: 'birthday_invite_room', user: userId }));
+        });
     });
   </script>
-  <div style="text-align:center; margin-top: 20px;">
-  👀 Этот сайт посмотрели:
-  <img src="https://hits.sh/vodeara.github.io-birthday-invite.svg?style=for-the-badge&label=гостей&color=ff6f61&labelColor=fff" alt="счётчик просмотров">
-</div>
 </body>
 </html>
-
 
