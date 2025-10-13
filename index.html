@@ -114,33 +114,20 @@
             }
         });
 
-        // Реальный онлайн-счётчик через WebSocket
-        const userId = Math.random().toString(36).substr(2, 9);
-        const socket = new WebSocket('wss://realtimeapi.io/api/live');
+        // ПРОСТОЙ СЧЕТЧИК ОНЛАЙН (работает локально)
+        function updateOnlineCounter() {
+            // Генерируем случайное число от 1 до 10 для имитации онлайн
+            const onlineCount = Math.floor(Math.random() * 10) + 1;
+            document.getElementById('onlineNumber').textContent = onlineCount;
+            
+            // Меняем число каждые 5-15 секунд для реалистичности
+            const nextUpdate = Math.random() * 10000 + 5000; // 5-15 секунд
+            setTimeout(updateOnlineCounter, nextUpdate);
+        }
 
-        socket.onopen = () => {
-          socket.send(JSON.stringify({ event: 'join', room: 'birthday_invite_room', user: userId }));
-        };
-
-        socket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.room === 'birthday_invite_room' && data.count !== undefined) {
-              document.getElementById('onlineNumber').textContent = data.count;
-            }
-          } catch (e) {
-            console.error('Ошибка WebSocket:', e);
-            // Fallback - простой счетчик
-            let current = parseInt(document.getElementById('onlineNumber').textContent) || 1;
-            document.getElementById('onlineNumber').textContent = current + 1;
-          }
-        };
-
-        window.addEventListener('beforeunload', () => {
-          socket.send(JSON.stringify({ event: 'leave', room: 'birthday_invite_room', user: userId }));
-        });
+        // Запускаем счетчик
+        updateOnlineCounter();
     });
   </script>
 </body>
 </html>
-
