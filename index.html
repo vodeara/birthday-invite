@@ -6,42 +6,76 @@
   <meta name="theme-color" content="#ff6f61">
   <title>Приглашение на День Рождения 🎉</title>
   <link rel="stylesheet" href="style.css">
+
   <style>
-    /* --- Стили счётчика онлайн-гостей --- */
+
     #onlineBox {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      background: rgba(255, 255, 255, 0.9);
-      color: #333;
-      font-weight: 600;
-      font-size: 14px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      position: fixed !important;
+      top: 12px !important;
+      left: 12px !important;
+      margin: 0 !important;
+      transform: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      color: #222 !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      padding: 8px 12px !important;
+      border-radius: 12px !important;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
+      z-index: 99999 !important;
+      pointer-events: auto !important;
+      white-space: nowrap !important;
     }
     #onlineDot {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: #28a745;
+      box-shadow: 0 0 0 rgba(40,167,69,0.6);
+      flex: 0 0 auto;
+    }
+    @keyframes breathe {
+      0% { box-shadow: 0 0 0 0 rgba(40,167,69,0.45); transform: scale(1); }
+      50% { box-shadow: 0 0 0 6px rgba(40,167,69,0.08); transform: scale(1.05); }
+      100% { box-shadow: 0 0 0 0 rgba(40,167,69,0.0); transform: scale(1); }
+    }
+    #onlineDot.breathe {
+      animation: breathe 2.5s ease-in-out infinite;
+    }
+    @keyframes pulseOnce {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40,167,69,0.6); }
+      40% { transform: scale(1.55); box-shadow: 0 0 0 14px rgba(40,167,69,0.12); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40,167,69,0); }
+    }
+    #onlineDot.pulse {
+      animation: pulseOnce 700ms ease-out;
+    }
+
+    #onlineLabel {
+      font-size: 13px;
+      color: #333;
+      margin-right: 6px;
+    }
+
+  
+    @media (max-width: 420px) {
+      #onlineBox { font-size: 12px; padding: 6px 10px; top: 8px; left: 8px; }
+      #onlineDot { width: 9px; height: 9px; }
     }
   </style>
 </head>
-
 <body class="scene" id="body">
 
-  <!-- 🔹 Счётчик онлайн-гостей -->
-  <div id="onlineBox">
-    <div id="onlineDot"></div>
-    Онлайн гостей: <span id="onlineNumber">1</span>
+  <div id="onlineBox" aria-live="polite" role="status">
+    <div id="onlineDot" class="breathe" aria-hidden="true"></div>
+    <div id="onlineLabel">Онлайн гостей:</div>
+    <div id="onlineNumber">1</div>
   </div>
 
-  <!-- Экран 1: главная -->
+  
   <section class="screen screen-home" id="homeScreen">
     <div class="iloveAlina">
       <h1>🎂 Мой День Рождения!</h1>
@@ -50,7 +84,6 @@
     </div>
   </section>
 
-  <!-- iloveAlina) -->
   <section class="screen screen-invite" id="inviteScreen">
     <div class="invite-iloveAlina">
       <button id="closeBtn" class="close-btn">✕</button>
@@ -75,7 +108,7 @@
       </div>
     </div>
   </section>
-
+ <!-- iloveAlina -->
   <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
   <audio id="bgMusic" src="music.mp3" loop></audio>
 
@@ -122,28 +155,71 @@
       openBtn.addEventListener('click', openInvitation);
       closeBtn.addEventListener('click', closeInvitation);
 
-      // --- WebSocket для счётчика гостей ---
+      const onlineNumberEl = document.getElementById('onlineNumber');
+      const onlineDot = document.getElementById('onlineDot');
+
+      function flashDot() {
+
+        onlineDot.classList.remove('pulse');
+      
+        void onlineDot.offsetWidth;
+        onlineDot.classList.add('pulse');
+      }
+      let socket;
+      try {
+        socket = new WebSocket('wss://realtimeapi.io/api/live');
+      } catch (e) {
+        socket = null;
+      }
+
       const userId = Math.random().toString(36).substr(2, 9);
-      const socket = new WebSocket('wss://realtimeapi.io/api/live');
 
-      socket.onopen = () => {
-        socket.send(JSON.stringify({ event: 'join', room: 'birthday_invite_room', user: userId }));
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.room === 'birthday_invite_room' && data.count !== undefined) {
-            document.getElementById('onlineNumber').textContent = data.count;
-          }
-        } catch (e) {
-          console.error('Ошибка WebSocket:', e);
+      function sendJoin() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ event: 'join', room: 'birthday_invite_room', user: userId }));
         }
-      };
+      }
 
-      window.addEventListener('beforeunload', () => {
-        socket.send(JSON.stringify({ event: 'leave', room: 'birthday_invite_room', user: userId }));
-      });
+      if (socket) {
+        socket.addEventListener('open', () => {
+          sendJoin();
+        });
+
+        socket.addEventListener('message', (evt) => {
+          try {
+            const data = JSON.parse(evt.data);
+            if (data.room === 'birthday_invite_room' && typeof data.count === 'number') {
+              onlineNumberEl.textContent = data.count;
+              flashDot();
+            }
+          } catch (err) {
+            console.error('WS parse error', err);
+          }
+        });
+
+        socket.addEventListener('close', () => {
+          console.warn('WS closed');
+        });
+
+        socket.addEventListener('error', (err) => {
+          console.error('WS error', err);
+        });
+
+        window.addEventListener('beforeunload', () => {
+          try {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({ event: 'leave', room: 'birthday_invite_room', user: userId }));
+            }
+          } catch (e) {}
+        });
+      } else {
+        let fallbackCount = parseInt(onlineNumberEl.textContent, 10) || 1;
+        document.getElementById('openBtn').addEventListener('click', () => {
+          fallbackCount += 1;
+          onlineNumberEl.textContent = fallbackCount;
+          flashDot();
+        });
+      }
     });
   </script>
 </body>
