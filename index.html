@@ -3,16 +3,43 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#ff6f61">
   <title>Приглашение на День Рождения 🎉</title>
-
-  <!-- Подключаем CSS -->
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* --- Стили счётчика онлайн-гостей --- */
+    #onlineBox {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #onlineDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #28a745;
+    }
+  </style>
 </head>
+
 <body class="scene" id="body">
+
+  <!-- 🔹 Счётчик онлайн-гостей -->
+  <div id="onlineBox">
+    <div id="onlineDot"></div>
+    Онлайн гостей: <span id="onlineNumber">1</span>
+  </div>
 
   <!-- Экран 1: главная -->
   <section class="screen screen-home" id="homeScreen">
@@ -23,7 +50,7 @@
     </div>
   </section>
 
-  <!-- Экран 2: приглашение -->
+  <!-- iloveAlina) -->
   <section class="screen screen-invite" id="inviteScreen">
     <div class="invite-iloveAlina">
       <button id="closeBtn" class="close-btn">✕</button>
@@ -49,97 +76,76 @@
     </div>
   </section>
 
-  <!-- Конфетти и музыка черновик-->
   <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
   <audio id="bgMusic" src="music.mp3" loop></audio>
 
-  <!-- Подкл джиски-->
   <script src="confetti.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const openBtn = document.getElementById('openBtn');
-        const closeBtn = document.getElementById('closeBtn');
-        const inviteScreen = document.getElementById('inviteScreen');
-        const homeScreen = document.getElementById('homeScreen');
-        const bgMusic = document.getElementById('bgMusic');
-        const toggleMusic = document.getElementById('toggleMusic');
-        const confettiCanvas = document.getElementById('confettiCanvas');
-        const body = document.getElementById('body');
+      const openBtn = document.getElementById('openBtn');
+      const closeBtn = document.getElementById('closeBtn');
+      const body = document.getElementById('body');
+      const bgMusic = document.getElementById('bgMusic');
+      const toggleMusic = document.getElementById('toggleMusic');
+      const confettiCanvas = document.getElementById('confettiCanvas');
 
-        function openInvitation() {
-            body.classList.add('flip');
-            if (confettiCanvas && window.confettiStart) {
-                confettiCanvas.style.display = 'block';
-                window.confettiStart();
-            }
-            if (bgMusic && toggleMusic) {
-                bgMusic.play().catch(() => {});
-                toggleMusic.textContent = '⏸ Остановить музыку';
-            }
+      function openInvitation() {
+        body.classList.add('flip');
+        if (window.confettiStart) {
+          confettiCanvas.style.display = 'block';
+          window.confettiStart();
         }
+        bgMusic.play().catch(() => {});
+        toggleMusic.textContent = '⏸ Остановить музыку';
+      }
 
-        function closeInvitation() {
-            body.classList.remove('flip');
-            if (confettiCanvas && window.confettiStop) {
-                confettiCanvas.style.display = 'none';
-                window.confettiStop();
-            }
-            if (bgMusic && toggleMusic) {
-                bgMusic.pause();
-                toggleMusic.textContent = '▶ Включить музыку';
-            }
+      function closeInvitation() {
+        body.classList.remove('flip');
+        if (window.confettiStop) {
+          confettiCanvas.style.display = 'none';
+          window.confettiStop();
         }
+        bgMusic.pause();
+        toggleMusic.textContent = '▶ Включить музыку';
+      }
 
-        function toggleMusicFunc() {
-            if (bgMusic.paused) {
-                bgMusic.play();
-                toggleMusic.textContent = '⏸ Остановить музыку';
-            } else {
-                bgMusic.pause();
-                toggleMusic.textContent = '▶ Включить музыку';
-            }
+      toggleMusic.addEventListener('click', () => {
+        if (bgMusic.paused) {
+          bgMusic.play();
+          toggleMusic.textContent = '⏸ Остановить музыку';
+        } else {
+          bgMusic.pause();
+          toggleMusic.textContent = '▶ Включить музыку';
         }
+      });
 
-        openBtn.addEventListener('click', openInvitation);
-        closeBtn.addEventListener('click', closeInvitation);
-        toggleMusic.addEventListener('click', toggleMusicFunc);
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && body.classList.contains('flip')) {
-                closeInvitation();
-            }
-        });
+      openBtn.addEventListener('click', openInvitation);
+      closeBtn.addEventListener('click', closeInvitation);
 
-        
-        const userId = Math.random().toString(36).substr(2, 9);
-        const socket = new WebSocket('wss://realtimeapi.io/api/live');
+      // --- WebSocket для счётчика гостей ---
+      const userId = Math.random().toString(36).substr(2, 9);
+      const socket = new WebSocket('wss://realtimeapi.io/api/live');
 
-        socket.onopen = () => {
-          socket.send(JSON.stringify({ event: 'join', room: 'birthday_invite_room', user: userId }));
-        };
+      socket.onopen = () => {
+        socket.send(JSON.stringify({ event: 'join', room: 'birthday_invite_room', user: userId }));
+      };
 
-        socket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.room === 'birthday_invite_room' && data.count !== undefined) {
-              document.getElementById('onlineNumber').textContent = data.count;
-            }
-          } catch (e) {
-            console.error('Ошибка WebSocket:', e);
-            // Fallback - простой счетчик
-            let current = parseInt(document.getElementById('onlineNumber').textContent) || 1;
-            document.getElementById('onlineNumber').textContent = current + 1;
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.room === 'birthday_invite_room' && data.count !== undefined) {
+            document.getElementById('onlineNumber').textContent = data.count;
           }
-        };
+        } catch (e) {
+          console.error('Ошибка WebSocket:', e);
+        }
+      };
 
-        window.addEventListener('beforeunload', () => {
-          socket.send(JSON.stringify({ event: 'leave', room: 'birthday_invite_room', user: userId }));
-        });
+      window.addEventListener('beforeunload', () => {
+        socket.send(JSON.stringify({ event: 'leave', room: 'birthday_invite_room', user: userId }));
+      });
     });
   </script>
-  <div <style="position: fixed; left: 20px; top: 20px; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
-  <img src="https://hits.sh/vodeara.github.io-birthday-invite.svg?style=for-the-badge&label=гостей&color=ff6f61&labelColor=fff" alt="счётчик просмотров">
-</div>
 </body>
 </html>
-
 
