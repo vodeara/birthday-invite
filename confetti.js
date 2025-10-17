@@ -1,11 +1,10 @@
-// Простой конфетти-генератор на canvas
+// Постоянно работающий конфетти-генератор 🎉
 (function(){
   const canvas = document.getElementById('confettiCanvas');
   const ctx = canvas.getContext('2d');
   let w = canvas.width = innerWidth;
   let h = canvas.height = innerHeight;
   let particles = [];
-  let running = false;
   let aniId = null;
 
   function rand(min,max){ return Math.random()*(max-min)+min; }
@@ -28,7 +27,7 @@
     };
   }
 
-  function initParticles(count=80){
+  function initParticles(count=120){
     particles = [];
     for(let i=0;i<count;i++) particles.push(makeParticle());
   }
@@ -43,7 +42,7 @@
     for(let p of particles){
       p.x += p.vx;
       p.y += p.vy;
-      p.vy += 0.03; // gravity
+      p.vy += 0.03; // гравитация
       p.rot += p.velRot;
       p.alpha -= 0.002;
       ctx.save();
@@ -61,11 +60,13 @@
       }
       ctx.restore();
     }
-    // удалить оффскрин/прозрачные
+
+    // Удаляем исчезнувшие
     particles = particles.filter(p => p.y < h + 50 && p.alpha > 0.01);
-    // если много меньше - добавим ещё
-    if (running && particles.length < 80){
-      for(let i=0;i<5;i++) particles.push(makeParticle());
+
+    // Добавляем новые, чтобы поток не прерывался
+    while (particles.length < 120) {
+      particles.push(makeParticle());
     }
   }
 
@@ -74,41 +75,27 @@
     aniId = requestAnimationFrame(loop);
   }
 
-  // API
-  window.confettiStart = function(){
-    if (running) return;
-    running = true;
+  // Автоматический запуск при загрузке
+  function start(){
     resize();
-    initParticles(140);
-    loop();
-  };
-  window.confettiStop = function(){
-    running = false;
+    initParticles(120);
     cancelAnimationFrame(aniId);
-    // очистим плавно
-    let fade = setInterval(()=>{
-      for(let p of particles) p.alpha -= 0.08;
-      particles = particles.filter(p => p.alpha > 0.02);
-      ctx.clearRect(0,0,w,h);
-      for(let p of particles){
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot * Math.PI / 180);
-        ctx.fillStyle = p.color;
-        if (p.shape === 'rect') ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
-        else { ctx.beginPath(); ctx.ellipse(0,0,p.size/2, p.size*0.6, 0, 0, Math.PI*2); ctx.fill(); }
-        ctx.restore();
-      }
-      if (particles.length === 0) {
-        clearInterval(fade);
-        ctx.clearRect(0,0,w,h);
-      }
-    }, 50);
+    loop();
+  }
+
+  // API — всё ещё можно вызвать вручную
+  window.confettiStart = start;
+  window.confettiStop = function(){
+    cancelAnimationFrame(aniId);
+    ctx.clearRect(0,0,w,h);
+    particles = [];
   };
   window.confettiResize = resize;
 
-  // очистка при навигации
+  window.addEventListener('resize', resize);
   window.addEventListener('beforeunload', ()=>{ cancelAnimationFrame(aniId); });
 
+  // 🚀 запускаем сразу при загрузке
+  start();
 })();
+
