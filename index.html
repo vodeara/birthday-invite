@@ -14,11 +14,6 @@
 </head>
 <body class="scene" id="body">
 
-  <!-- 👥 Онлайн-счётчик СЛЕВА СВЕРХУ -->
-  <div id="onlineCounter" style="position: fixed; left: 20px; top: 20px; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
-    Сейчас на сайте: <span id="onlineNumber">1</span> 🎈
-  </div>
-
   <!-- Экран 1: главная -->
   <section class="screen screen-home" id="homeScreen">
     <div class="iloveAlina">
@@ -54,11 +49,11 @@
     </div>
   </section>
 
-  <!-- Конфетти и музыка -->
+  <!-- Конфетти и музыка черновик-->
   <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
   <audio id="bgMusic" src="music.mp3" loop></audio>
 
-  <!-- Подключаем JS -->
+  <!-- Подкл джиски-->
   <script src="confetti.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -114,7 +109,7 @@
             }
         });
 
-        // Реальный онлайн-счётчик через WebSocket
+        
         const userId = Math.random().toString(36).substr(2, 9);
         const socket = new WebSocket('wss://realtimeapi.io/api/live');
 
@@ -141,10 +136,10 @@
         });
     });
   </script>
-  <div style="text-align:center; margin-top: 20px;">
-  👀 Этот сайт посмотрели:
+  <div <style="position: fixed; left: 20px; top: 20px; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
   <img src="https://hits.sh/vodeara.github.io-birthday-invite.svg?style=for-the-badge&label=гостей&color=ff6f61&labelColor=fff" alt="счётчик просмотров">
 </div>
 </body>
 </html>
+
 
