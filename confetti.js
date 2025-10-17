@@ -65,7 +65,7 @@
     particles = particles.filter(p => p.y < h + 50 && p.alpha > 0.01);
 
     // Добавляем новые, чтобы поток не прерывался
-    while (particles.length < 120) {
+    while (particles.length < 160) {
       particles.push(makeParticle());
     }
   }
@@ -98,4 +98,5 @@
   // 🚀 запускаем сразу при загрузке
   start();
 })();
+
 
